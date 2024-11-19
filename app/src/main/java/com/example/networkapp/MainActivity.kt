@@ -46,16 +46,24 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+
+
     // Fetches comic from web as JSONObject
     private fun downloadComic (comicId: String) {
         val url = "https://xkcd.com/$comicId/info.0.json"
         requestQueue.add (
-            JsonObjectRequest(url
-                , {showComic(it)}
-                , {}
+            JsonObjectRequest(
+                url,
+                { comicObject ->
+                    showComic(comicObject)
+                    saveComic(comicObject)
+                },
+                {}
             )
         )
     }
+
+
 
     // Display a comic for a given comic JSON object
     private fun showComic (comicObject: JSONObject) {
@@ -66,8 +74,8 @@ class MainActivity : AppCompatActivity() {
 
     // Implement this function
     private fun saveComic(comicObject: JSONObject) {
-
-    }
-
-
+            titleTextView.text = comicObject.getString("title")
+            descriptionTextView.text = comicObject.getString("alt")
+            Picasso.get().load(comicObject.getString("img")).into(comicImageView)
+        }
 }
