@@ -1,5 +1,6 @@
 package com.example.networkapp
 
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
@@ -28,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var showButton: Button
     lateinit var comicImageView: ImageView
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -44,9 +46,9 @@ class MainActivity : AppCompatActivity() {
             downloadComic(numberEditText.text.toString())
         }
 
+        loadSavedComic()
+
     }
-
-
 
     // Fetches comic from web as JSONObject
     private fun downloadComic (comicId: String) {
@@ -63,8 +65,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-
-
     // Display a comic for a given comic JSON object
     private fun showComic (comicObject: JSONObject) {
         titleTextView.text = comicObject.getString("title")
@@ -72,10 +72,37 @@ class MainActivity : AppCompatActivity() {
         Picasso.get().load(comicObject.getString("img")).into(comicImageView)
     }
 
+
     // Implement this function
     private fun saveComic(comicObject: JSONObject) {
+        val filename = "saved_comic.json"
+        val fileContents = comicObject.toString() // Convert JSONObject to string
+        openFileOutput(filename, MODE_PRIVATE).use {
+            it.write(fileContents.toByteArray()) // Write the string to a file
+        }
+    }
+
+    // Read the file
+    private fun readSavedComic(): JSONObject? {
+        val filename = "saved_comic.json"
+        return try {
+            val fileContents = openFileInput(filename).bufferedReader().use { it.readText() }
+            JSONObject(fileContents) // Convert the file content back to a JSONObject
+        } catch (e: Exception) {
+            null // Return null if the file doesn't exist
+        }
+    }
+
+    private fun loadSavedComic() {
+        val comicObject = readSavedComic()
+
+        if (comicObject != null) {
             titleTextView.text = comicObject.getString("title")
             descriptionTextView.text = comicObject.getString("alt")
             Picasso.get().load(comicObject.getString("img")).into(comicImageView)
+        } else {
+            titleTextView.text = "No comic saved."
+            descriptionTextView.text = ""
         }
+    }
 }
